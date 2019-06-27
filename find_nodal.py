@@ -220,8 +220,8 @@ def _rotate_points(points, a, v=None):
 
 def main():
     # file = os.path.expanduser('~/Desktop') + '/helicity/pp/mo/56.cube'
-    # file = os.path.expanduser('~/Desktop') + '/4cum_helical.cube'
-    file = os.getcwd() + "/helical.cube"
+    # file = os.getcwd() + "/helical.cube"
+    file = os.getcwd() + "/cum_helical.cube"
     # file = os.getcwd() + "/helical_4cum.cube"
 
     # fig, ax = plt.subplots()
@@ -243,10 +243,10 @@ def main():
 
 
     # Center of the molecule is chosen to be Ru
-    center_atom = atoms[3].position
+    # center_atom = atoms[3].position
 
     # for the [4]cumulene
-    # center_atom = atoms[2].position
+    center_atom = atoms[3].position
     center_x = center_atom[0]
     center_y = center_atom[1]
     center_z = center_atom[2]
@@ -281,12 +281,12 @@ def main():
     # plt.show()
 
     # Lowest and highest carbon atom in terms of z-value
-    carbon1 = atoms[23]
-    carbon2 = atoms[6]
+    # carbon1 = atoms[23]
+    # carbon2 = atoms[6]
 
     # for the [4]cumulene
-    # carbon1 = atoms[4]
-    # carbon2 = atoms[0]
+    carbon1 = atoms[5]
+    carbon2 = atoms[1]
 
     print('Finding planes..')
     planes = []
@@ -359,7 +359,7 @@ def main():
                 p2 = np.array(p2).ravel()
 
                 # Constrict number of points by a radius-filter
-                r_indices = np.where(cart2pol(plane[:, 0], plane[:, 1])[0] < 1.5)
+                r_indices = np.where(cart2pol(plane[:, 0], plane[:, 1])[0] < 1.3)
                 plane = plane[r_indices]
 
                 plt.plot([0, p2[0] - p1[0]], [0, p2[1] - p1[1]], color='orange')
@@ -451,7 +451,7 @@ def main():
     ax.plot(np.array(z_value) + carbon2.position[2], np.cumsum(angles), marker='o')
     ax.plot(np.array(z_value) + carbon2.position[2], np.gradient(np.cumsum(angles)), marker='o')
 
-    export_jmol.export_jmol(data_dic, [center_x, center_y, center_z])
+    export_jmol.export_jmol(data_dic, [center_x, center_y, center_z], file)
     
     # Automatically run jmol - i'm lazy
     cmd = 'jmol jmol_export.spt &'
