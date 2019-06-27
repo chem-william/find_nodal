@@ -140,6 +140,20 @@ def _string2vector(v) -> np.ndarray:
     return np.array(v, float)
 
 
+def find_zero_crossings(plane: np.array, axis: int, x_cross, y_cross):
+    u, indices = np.unique(plane[:, axis], return_index=True)
+
+    for value in plane[indices, axis]:
+        line_indices = np.where(plane[:, axis] == value)
+        temp_line = plane[line_indices]
+
+        zero_crossings = np.where(np.diff(np.sign(temp_line[:, 3])))[0]
+
+        for item in zero_crossings:
+            x_cross.append((temp_line[item, 0] + temp_line[item + 1, 0])/2)
+            y_cross.append((temp_line[item, 1] + temp_line[item + 1, 1]/2))
+
+
 def _unit_vec(vec) -> np.array:
     vec = _string2vector(vec)
     norm_vec = np.linalg.norm(vec)
@@ -204,15 +218,11 @@ def _rotate_points(points, a, v=None):
     return result
 
 
-# XXX: virker ikke pt, og problemet er sandsynligvis, at punkterne ikke er centret
-# hvorfor, det ved jeg ikke
-
 def main():
     # file = os.path.expanduser('~/Desktop') + '/helicity/pp/mo/56.cube'
     # file = os.path.expanduser('~/Desktop') + '/4cum_helical.cube'
     file = os.getcwd() + "/helical.cube"
     # file = os.getcwd() + "/helical_4cum.cube"
-    # file = os.getcwd() + "/h.cube"
 
     # fig, ax = plt.subplots()
 
@@ -277,16 +287,6 @@ def main():
     # for the [4]cumulene
     # carbon1 = atoms[4]
     # carbon2 = atoms[0]
-    # prev_coord = 0
-    # temp = []
-    # for i, coordinate in enumerate(all_info):
-    #     if i == 0:
-    #         prev_coord = coordinate
-    #     else:
-    #         temp.append(coordinate[0] - prev_coord[0])
-    #         prev_coord = coordinate
-    # plt.plot(range(len(temp)), (temp))
-    # plt.show()
 
     print('Finding planes..')
     planes = []
@@ -316,20 +316,19 @@ def main():
     count = 1
     z_value = []
 
-    ax = plt.axes(projection='3d')
+    # step = 1
+    # ax = plt.axes(projection='3d')
+    # for idx, plane in enumerate(planes):
+    #     color = ['red' if x < 0 else 'blue' for x in plane[::step, 3]]
 
-    step = 1
-    for idx, plane in enumerate(planes):
-        color = ['red' if x < 0 else 'blue' for x in plane[::step, 3]]
-
-        ax = plt.axes(projection='3d')
-        ax.scatter(plane[::step, 0],
-                   plane[::step, 1],
-                   plane[::step, 2],
-                   s=abs(plane[::step, 3])*800,
-                   # c=color,
-                   alpha=0.6)
-    plt.show()
+    #     ax = plt.axes(projection='3d')
+    #     ax.scatter(plane[::step, 0],
+    #                plane[::step, 1],
+    #                plane[::step, 2],
+    #                s=abs(plane[::step, 3])*800,
+    #                c=color,
+    #                alpha=0.6)
+    # plt.show()
 
     print('Cleaning values..')
     for idx, plane in enumerate(planes):
@@ -378,27 +377,8 @@ def main():
                 # Find each line of the plot + zero crossings
                 x_cross = []
                 y_cross = []
-                u, indices = np.unique(plane[:, 1], return_index=True)
-                for value in plane[indices, 1]:
-                    line_indices = np.where(plane[:, 1] == value)
-                    temp_line = plane[line_indices]
-
-                    zero_crossings = np.where(np.diff(np.sign(temp_line[:, 3])))[0]
-
-                    for item in zero_crossings:
-                        x_cross.append((temp_line[item, 0] + temp_line[item + 1, 0])/2)
-                        y_cross.append((temp_line[item, 1] + temp_line[item + 1, 1]/2))
-
-                u, indices = np.unique(plane[:, 0], return_index=True)
-                for value in plane[indices, 0]:
-                    line_indices = np.where(plane[:, 0] == value)
-                    temp_line = plane[line_indices]
-
-                    zero_crossings = np.where(np.diff(np.sign(temp_line[:, 3])))[0]
-
-                    for item in zero_crossings:
-                        x_cross.append((temp_line[item, 0] + temp_line[item + 1, 0])/2)
-                        y_cross.append((temp_line[item, 1] + temp_line[item + 1, 1]/2))
+                find_zero_crossings(plane, 0, x_cross, y_cross)
+                find_zero_crossings(plane, 1, x_cross, y_cross)
 
                 ax.scatter(x_cross, y_cross,
                         #    plane[0, 2],
