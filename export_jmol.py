@@ -51,7 +51,6 @@ def export_jmol(export_data: Dict, origin: List[int], cube_file: str) -> None:
 
         file.write(f'load "{cube_file}"\n')
         file.write('background [255, 255, 255]\n')
-        # file.write('bondRadiusMilliAngstroms 40')
         file.write('set perspectiveDepth OFF\n')
         file.write('isoSurface sign red blue cutoff 0.02""\n')
         file.write('color isosurface translucent\n')
