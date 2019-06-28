@@ -58,10 +58,7 @@ def center_atoms(atoms, center_atom):
 
 
 def center_data(datapoints, center):
-    for idx, point in enumerate(datapoints):
-        datapoints[idx] = point - center
-
-    return datapoints
+    return datapoints = datapoints - center
 
 
 def find_nearest_idx(array, value: float) -> int:
@@ -254,31 +251,31 @@ def main():
     all_info[:, :3] = center_data(all_info[:, :3], atoms[3].position)
     atoms = center_atoms(atoms, center_atom)
 
-    # ax = plt.axes(projection='3d')
+    ax = plt.axes(projection='3d')
 
-    # step = 10
-    # ax.scatter(all_info[::step, 0],
-    #            all_info[::step, 1],
-    #            all_info[::step, 2],
-    #            s=all_info[::step, 3]*100)
+    step = 10
+    ax.scatter(all_info[::step, 0],
+               all_info[::step, 1],
+               all_info[::step, 2],
+               s=all_info[::step, 3]*100)
 
-    # for atom in atoms:
-    #     if atom.symbol == 'C':
-    #         ax.scatter(atom.position[0],
-    #                    atom.position[1],
-    #                    atom.position[2],
-    #                    c='black')
+    for atom in atoms:
+        if atom.symbol == 'C':
+            ax.scatter(atom.position[0],
+                       atom.position[1],
+                       atom.position[2],
+                       c='black')
 
-    #     if atom.symbol == 'Ru':
-    #         ax.scatter(atom.position[0],
-    #                     atom.position[1],
-    #                     atom.position[2],
-    #                     c='turquoise')
-    # ax.set_xlabel('X axis')
-    # ax.set_ylabel('Y axis')
-    # ax.set_zlabel('Z axis')
+        if atom.symbol == 'Ru':
+            ax.scatter(atom.position[0],
+                        atom.position[1],
+                        atom.position[2],
+                        c='turquoise')
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
 
-    # plt.show()
+    plt.show()
 
     # Lowest and highest carbon atom in terms of z-value
     # carbon1 = atoms[23]
@@ -431,7 +428,7 @@ def main():
                 neg_iso.append([p2[0], p2[1], plane[0, 2]])
                 plane_data.append([vec[0], vec[1], plane[0, 2]])
 
-                plt.show()
+                # plt.show()
 
     data_dic = {'pos_iso': pos_iso,
                 'neg_iso': neg_iso,
