@@ -1,4 +1,5 @@
-from time import time
+import argparse
+
 import os
 import warnings
 
@@ -11,6 +12,9 @@ sns.set_style(style='white')
 
 import export_jmol
 import utilities
+
+
+ALIGN = False
 
 
 def cart2pol(x, y):
@@ -58,7 +62,7 @@ def center_atoms(atoms, center_atom):
 
 
 def center_data(datapoints, center):
-    return datapoints = datapoints - center
+    return datapoints - center
 
 
 def find_nearest_idx(array, value: float) -> int:
@@ -84,6 +88,7 @@ def draw_prev_angle(vec, angles, ax):
     _, line_phi = cart2pol(vec[0], vec[1])
     angle_phi += line_phi
     angle_x, angle_y = pol2cart(angle_rho, angle_phi)
+
     ax.plot(angle_x, angle_y, color='purple')
 
 
@@ -215,29 +220,61 @@ def _rotate_points(points, a, v=None):
     return result
 
 
+def plot_slices(ax,
+                high_iso,
+                low_iso,
+                x_cross,
+                y_cross,
+                perp_vec,
+                vec,
+                angles,
+                x,
+                y):
+
+    ax.plot([0, low_iso[0] - high_iso[0]],
+            [0, low_iso[1] - high_iso[1]], color='orange')
+
+    # TODO: check om navnene til de her punkter er rigtige
+    ax.scatter(high_iso[0], high_iso[1], marker='x', color='green')
+    ax.scatter(low_iso[0], low_iso[1], marker='x', color='black')
+
+    ax.plot([0, perp_vec[0]], [0, perp_vec[1]], color='black')
+
+    # plot the midway points at which the
+    # isovalues goes from positive to negative
+    ax.scatter(x_cross, y_cross,
+               marker='v', color='purple')
+
+    # TODO: check hvad den her plotter
+    ax.scatter(vec[0], vec[1], color='black', marker='x')
+
+    draw_prev_angle(vec, angles, ax)
+
+    ax.plot(x, y, color='black', label=f'{angles[-1]}')
+    ax.legend()
+
+
 def main():
+    file, ALIGN, show_slices = parse_args()
+
     # file = os.path.expanduser('~/Desktop') + '/helicity/pp/mo/56.cube'
     # file = os.getcwd() + "/helical.cube"
     file = os.getcwd() + "/cum_helical.cube"
     # file = os.getcwd() + "/helical_4cum.cube"
 
-    # fig, ax = plt.subplots()
-
     atoms, all_info, xyz_vec = utilities.read_cube(file)
 
-    # Align data along z-axis
-    # align_axis = atoms[0].position - atoms[4].position
-    # atoms.rotate(align_axis, 'z')
+    if ALIGN:
+        # Align data and atoms along z-axis
+        # only necessary for .cube files from cubegen
+        align_axis = atoms[0].position - atoms[4].position
+        atoms.rotate(align_axis, 'z')
 
-    # all_info[:, :3] = _rotate_points(all_info[:, :3],
-    #                                  align_axis,
-    #                                  'z')
+        all_info[:, :3] = _rotate_points(all_info[:, :3],
+                                         align_axis,
+                                         'z')
 
     all_info = all_info[all_info[:, 2].argsort()]
-
-    # plt.plot(range(len(all_info[p1:p2, 2])), all_info[p1:p2, 2], "-o")
-    # plt.show()
-
 
     # Center of the molecule is chosen to be Ru
     # center_atom = atoms[3].position
@@ -248,34 +285,8 @@ def main():
     center_y = center_atom[1]
     center_z = center_atom[2]
 
-    all_info[:, :3] = center_data(all_info[:, :3], atoms[3].position)
+    all_info[:, :3] = center_data(all_info[:, :3], center_atom)
     atoms = center_atoms(atoms, center_atom)
-
-    ax = plt.axes(projection='3d')
-
-    step = 10
-    ax.scatter(all_info[::step, 0],
-               all_info[::step, 1],
-               all_info[::step, 2],
-               s=all_info[::step, 3]*100)
-
-    for atom in atoms:
-        if atom.symbol == 'C':
-            ax.scatter(atom.position[0],
-                       atom.position[1],
-                       atom.position[2],
-                       c='black')
-
-        if atom.symbol == 'Ru':
-            ax.scatter(atom.position[0],
-                        atom.position[1],
-                        atom.position[2],
-                        c='turquoise')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
-
-    plt.show()
 
     # Lowest and highest carbon atom in terms of z-value
     # carbon1 = atoms[23]
@@ -285,25 +296,28 @@ def main():
     carbon1 = atoms[5]
     carbon2 = atoms[1]
 
-    print('Finding planes..')
     planes = []
     plane = []
-    prev_coord = all_info[0]
-    for coordinate in all_info:
-        # Don't bother with coordinates that has an isovalue of 0
-        if not coordinate[3] == 0.0:
-            if coordinate[2] == prev_coord[2]:
-                # we're in the same plane so add the coordinate
-                plane.append([coordinate[0],
-                              coordinate[1],
-                              coordinate[2],
-                              coordinate[3]])
-            else:
-                plane = np.array(plane)
-                planes.append(plane)
-                plane = []
+    print('Finding planes..')
+    if ALIGN:
+        pass
+    else:
+        prev_coord = all_info[0]
+        for coordinate in all_info:
+            # Don't bother with coordinates that has an isovalue of 0
+            if not coordinate[3] == 0.0:
+                if coordinate[2] == prev_coord[2]:
+                    # we're in the same plane so add the coordinate
+                    plane.append([coordinate[0],
+                                  coordinate[1],
+                                  coordinate[2],
+                                  coordinate[3]])
+                else:
+                    plane = np.array(plane)
+                    planes.append(plane)
+                    plane = []
 
-        prev_coord = coordinate
+            prev_coord = coordinate
 
     planes = np.array(planes)
 
@@ -313,60 +327,37 @@ def main():
     count = 1
     z_value = []
 
-    # step = 1
-    # ax = plt.axes(projection='3d')
-    # for idx, plane in enumerate(planes):
-    #     color = ['red' if x < 0 else 'blue' for x in plane[::step, 3]]
-
-    #     ax = plt.axes(projection='3d')
-    #     ax.scatter(plane[::step, 0],
-    #                plane[::step, 1],
-    #                plane[::step, 2],
-    #                s=abs(plane[::step, 3])*800,
-    #                c=color,
-    #                alpha=0.6)
-    # plt.show()
-
-    print('Cleaning values..')
+    print('Analyzing..')
     for idx, plane in enumerate(planes):
         if carbon2.position[2] > plane[0, 2] > carbon1.position[2]:
             if idx < len(planes) - 1:
                 z_value.append(plane[0, 2])
-                fig, ax = plt.subplots()
 
-                color = ['red' if x < 0 else 'blue' for x in plane[:, 3]]
-
-                # ax = plt.axes(projection='3d')
-                ax.scatter(plane[:, 0],
-                           plane[:, 1],
-                        #    plane[:, 2],
-                           s=abs(plane[:, 3])*800,
-                           c=color,
-                           alpha=0.6)
-                # plt.show()
+                if show_slices:
+                    fig, ax = plt.subplots()
+                    color = ['red' if x < 0 else 'blue' for x in plane[:, 3]]
+                    ax.scatter(plane[:, 0],
+                               plane[:, 1],
+                               s=abs(plane[:, 3])*800,
+                               c=color,
+                               alpha=0.6)
 
                 # Find highest and lowest isovalue
                 maximum = np.amax(plane[:, 3])
                 max_index = np.where(plane[:, 3] == maximum)
                 minimum = np.amin(plane[:, 3])
                 min_index = np.where(plane[:, 3] == minimum)
-                p1 = [plane[max_index, 0], plane[max_index, 1]]
-                p1 = np.array(p1).ravel()
-                p2 = [plane[min_index, 0], plane[min_index, 1]]
-                p2 = np.array(p2).ravel()
+                max_iso = [plane[max_index, 0], plane[max_index, 1]]
+                max_iso = np.array(max_iso).ravel()
+                min_iso = [plane[min_index, 0], plane[min_index, 1]]
+                min_iso = np.array(min_iso).ravel()
 
                 # Constrict number of points by a radius-filter
                 r_indices = np.where(cart2pol(plane[:, 0], plane[:, 1])[0] < 1.3)
                 plane = plane[r_indices]
 
-                plt.plot([0, p2[0] - p1[0]], [0, p2[1] - p1[1]], color='orange')
-
-                plt.scatter(p1[0], p1[1], marker='x', color='green')
-                plt.scatter(p2[0], p2[1], marker='x', color='black')
-
-                perp_vec = perpendicular_vector([p1[0] - p2[0], p1[1] - p2[1], 0])
+                perp_vec = perpendicular_vector([max_iso[0] - min_iso[0], max_iso[1] - min_iso[1], 0])
                 perp_vec = perp_vec/np.linalg.norm(perp_vec)
-                plt.plot([0, perp_vec[0]], [0, perp_vec[1]], color='black')
 
                 # Sort plane - first by x- then by y-values
                 plane = plane[np.lexsort((plane[:, 0], plane[:, 1]))]
@@ -376,10 +367,6 @@ def main():
                 y_cross = []
                 find_zero_crossings(plane, 0, x_cross, y_cross)
                 find_zero_crossings(plane, 1, x_cross, y_cross)
-
-                ax.scatter(x_cross, y_cross,
-                        #    plane[0, 2],
-                           marker='v', color='purple')
 
                 x, y = fit_points(x_cross, y_cross, count)
 
@@ -399,40 +386,44 @@ def main():
                 else:
                     vec = [x[-1], y[-1]]
 
-                ax.scatter(vec[0], vec[1], color='black', marker='x')
-
                 if count == 1:
                     angles.append(0)
-
                 else:
                     angle = angle_between(prev_vec, vec)
                     angles.append(angle)
 
-                draw_prev_angle(vec, angles, ax)
-
-                ax.plot(x, y, color='black', label=f'{angles[-1]}')
-                ax.legend()
-
-                limits = 6
-                ax.set_xlim([-limits, limits])
-                ax.set_ylim([-limits, limits])
-
-                ax.set_xlabel('X axis')
-                ax.set_ylabel('Y axis')
                 # ax.set_zlabel('Z axis')
 
                 prev_vec = vec
                 count += 1
 
-                pos_iso.append([p1[ 0], p1[1], plane[0, 2]])
-                neg_iso.append([p2[0], p2[1], plane[0, 2]])
+                pos_iso.append([max_iso[ 0], max_iso[1], plane[0, 2]])
+                neg_iso.append([min_iso[0], min_iso[1], plane[0, 2]])
                 plane_data.append([vec[0], vec[1], plane[0, 2]])
 
-                # plt.show()
+                if show_slices:
+                    limits = 6
+                    plot_slices(ax,
+                                max_iso,
+                                min_iso,
+                                x_cross,
+                                y_cross,
+                                perp_vec,
+                                vec,
+                                angles,
+                                x,
+                                y)
+                    ax.set_xlim([-limits, limits])
+                    ax.set_ylim([-limits, limits])
+
+                    ax.set_xlabel('X axis')
+                    ax.set_ylabel('Y axis')
+
 
     data_dic = {'pos_iso': pos_iso,
                 'neg_iso': neg_iso,
                 'plane_data': plane_data}
+
     fig, ax = plt.subplots()
 
     # Overlay atoms on angle-plot
@@ -453,29 +444,42 @@ def main():
     # Automatically run jmol - i'm lazy
     cmd = 'jmol jmol_export.spt &'
     os.system(cmd)
+
     plt.show()
 
-    # fig, ax = plt.subplots()
-    # ax.scatter(pval, rval)
-    # for i in range(len(rval)):
-    #     ax.annotate(i+1, (pval[i], rval[i]))
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Analyze helicity of .cube file')
+
+    parser.add_argument('file', metavar="path to .cube file",
+                        help='path to .cube file to analyze')
+
+    parser.add_argument('center', metavar='center_atom'
+                        'the atom to center data points around. Can be obtained by opening the file in e.g. Avogadro. First atom is 1')
+
+    parser.add_argument('--no-align',
+                        dest='no_align',
+                        default=True,
+                        action='store_false',
+                        help='whether the datapoints should be aligned to z-axis. Should be False for .cube files from transmission calculations. Default is True')
+
+    parser.add_argument('--open-jmol',
+                        default=False,
+                        help='whether to open the generated .spt file in jmol after analysis. Default is False')
+
+    parser.add_argument('--show-slices',
+                        default=False,
+                        dest='show_slices',
+                        action='store_true',
+                        help='show each slice that has been generated from the .cube file. Default is False')
+    args = parser.parse_args()
+
+    file = os.getcwd() + '/' + args.file
+    center_atom = int(args.center) - 1
+    open_jmol = args.open_jmol
 
 
-    # print('Plotting atoms..')
-    # for atom in atoms:
-    #     if atom.symbol == 'C':
-    #         ax.scatter(atom.position[0],
-    #                    atom.position[1],
-    #                    atom.position[2],
-    #                    c='black')
-
-    #     if atom.symbol == 'Ru':
-    #         ax.scatter(atom.position[0],
-    #                    atom.position[1],
-    #                    atom.position[2],
-    #                    c='turquoise')
-
-    # plt.show()
+    return file, args.no_align, args.show_slices
 
 
 if __name__ == '__main__':
