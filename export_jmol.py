@@ -1,6 +1,8 @@
+import numpy as np
 import numpy.linalg as la
 from typing import List
 from typing import Dict
+import matplotlib.pyplot as plt
 
 EXPORT_FILE = "./jmol_export.spt"
 
@@ -21,7 +23,17 @@ def draw_iso(iso_values: List[List[int]],
     file.write('\n')
 
 
-def draw_plane(values: List[List[int]], origin: List[int], file) -> None:
+def draw_curve(line_values, file):
+    curve_str = f"draw curve1 CURVE curve width 0.3 color black"
+
+    for value in line_values:
+        curve_str += f"{{ {value[0]} {value[1]} {value[2]} }}"
+
+    file.write(curve_str)
+    file.write("\n")
+
+
+def draw_plane(values, origin: List[int], file) -> None:
     prev_coord = None
     line_str: str = ''
     for idx, value in enumerate(values):
@@ -34,10 +46,11 @@ def draw_plane(values: List[List[int]], origin: List[int], file) -> None:
 
         if idx > 1:
             line_str = f'draw plane{idx} PLANE {{{coord[0]} {coord[1]} {coord[2]}}} '  # Upper left
-            line_str += f'{{{coord[0]} {coord[1]} {prev_coord[2]}}} '  # Upper right
+            line_str += f'{{{prev_coord[0]} {prev_coord[1]} {prev_coord[2]}}} '  # Upper right
 
-            # line_str += f'{{{coord[0] - prev_xy[0]*2} {coord[1] - prev_xy[1]*2} {prev_coord[2]}}} '  # Lower right
-            line_str += f'{{{coord[0]  - norm_xy[0]*2} {coord[1] - norm_xy[1]*2} {coord[2]}}} '  # Lower left
+            line_str += f'{{{coord[0] - norm_xy[0]*2} {coord[1] - norm_xy[1]*2} {prev_coord[2]}}} '  # Lower right
+            # line_str += f'draw circle{idx} DIAMETER 0.11 CIRCLE {{ {coord[0] - norm_xy[0]*2} {coord[1] - norm_xy[1]*2} {coord[2]} }} '
+            line_str += f'{{{prev_coord[0] - norm_xy[0]*2} {prev_coord[1] - norm_xy[1]*2} {coord[2]}}} '  # Lower left
 
             file.write(line_str)
             file.write('\n')
@@ -56,20 +69,12 @@ def export_jmol(export_data: Dict, origin: List[int], cube_file: str) -> None:
         file.write('color isosurface translucent\n')
         file.write('show isoSurface\n')
 
+        # draw_curve(export_data["curve"], file)
         draw_iso(export_data['pos_iso'], origin, file, 'blue', 1)
         draw_iso(export_data['neg_iso'], origin, file, 'red', 2)
 
         draw_plane(export_data['plane_data'], origin, file)
 
-        # for idx, line in enumerate(export_data):
-        #     start = [origin[0], origin[1], line[2] + origin[2]]
-        #     end = [line[0] + origin[0], line[1] + origin[1], line[2] + origin[2]]
-
-        #     file.write((f"draw arr{idx} "
-        #                 f"line width 0.2 "
-        #                 f"{{{start[0]} {start[1]} {start[2]}}} "
-        #                 f"{{{end[0]} {end[1]} {end[2]}}} "
-        #                 f"color [255, 0, 0]\n"))
     print('done')
 
 
