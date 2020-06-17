@@ -256,31 +256,44 @@ def export_as_gif(imgs, x, y, fig, ax, folder_name: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Analyze helicity of .cube file')
+        description='Analyze helicity of .cube file'
+    )
 
-    parser.add_argument('file', metavar=".cube_file",
-                        help='Path to .cube file to analyze')
+    parser.add_argument(
+        'file', metavar=".cube_file", help='Path to .cube file to analyze'
+    )
 
-    parser.add_argument('center', metavar='center_atom',
-                        help='The atom to center data points around. Can be obtained by opening the file in e.g. Avogadro. First atom is 1')
+    parser.add_argument(
+        'center',
+        metavar='center_atom',
+        help='The atom to center data points around. Can be obtained by opening the file in e.g. Avogadro. First atom is 1'
+    )
 
-    parser.add_argument('bottom_atom',
-                        help='"bottom" atom of the linear carbon chain')
+    parser.add_argument(
+        'bottom_atom',
+        help='"bottom" atom of the linear carbon chain'
+    )
 
-    parser.add_argument('top_atom',
-                        help='"top" atom of the linear carbon chain')
+    parser.add_argument(
+        'top_atom',
+        help='"top" atom of the linear carbon chain'
+    )
 
-    parser.add_argument('--show-slices',
-                        default=False,
-                        dest='show_slices',
-                        action='store_true',
-                        help='Show each slice that has been generated from the .cube file. Default is False')
+    parser.add_argument(
+        '--show-slices',
+        default=False,
+        dest='show_slices',
+        action='store_true',
+        help='Show each slice that has been generated from the .cube file. Default is False'
+    )
 
-    parser.add_argument('--export-gif',
-                        default=False,
-                        dest='export_gif',
-                        action='store_true',
-                        help='Export the slices as a .gif. Default is False')
+    parser.add_argument(
+        '--export-gif',
+        default=False,
+        dest='export_gif',
+        action='store_true',
+        help='Export the slices as a .gif. Default is False'
+    )
     args = parser.parse_args()
 
     file = os.getcwd() + '/' + args.file
@@ -295,14 +308,11 @@ def main():
     # Used to narrow the amount of slices along the z-axis
     # as we don't care about the orbitals on the substituents etc.
     top_carbon = atoms[int(args.top_atom) - 1].position
-    print("top")
-    print(top_carbon)
-    print("="*25)
     bottom_carbon = atoms[int(args.bottom_atom) - 1].position
-    print("bottom")
-    print(bottom_carbon)
     if top_carbon[2] < bottom_carbon[2]:
-        raise ValueError("top atom is lower on the z-axis than the bottom atom")
+        raise ValueError(
+            "Top atom is lower on the z-axis than the bottom atom"
+        )
 
     center_x = center_atom[0]
     center_y = center_atom[1]
@@ -311,7 +321,9 @@ def main():
     all_info[:, :3] = center_data(all_info[:, :3], center_atom)
     atoms = center_atoms(atoms, center_atom)
 
-    atom_info = [atoms, top_carbon, bottom_carbon, [center_x, center_y, center_z]]
+    atom_info = [
+        atoms, top_carbon, bottom_carbon, [center_x, center_y, center_z]
+    ]
 
     planes = []
     plane = []
@@ -323,8 +335,8 @@ def main():
         if coordinate[2] == prev_coord[2]:
             # we're in the same plane so add the coordinate
             plane.append(
-                    [coordinate[0], coordinate[1], coordinate[2], coordinate[3]]
-                )
+                [coordinate[0], coordinate[1], coordinate[2], coordinate[3]]
+            )
         else:
             plane = np.array(plane)
             # Drop coordinates with isovalues == 0.0
@@ -370,8 +382,10 @@ def main():
                     )
 
                 # Constrict number of points by a radius-filter
+                # Arbitrarily set at .9
                 r_indices = np.where(
-                    cart2pol(plane[:, 0], plane[:, 1])[0] < .9)
+                    cart2pol(plane[:, 0], plane[:, 1])[0] < .9
+                )
                 plane = plane[r_indices]
 
                 # Find highest and lowest isovalue
@@ -442,16 +456,18 @@ def main():
 
                 if show_slices or export_gif:
                     limits = 6
-                    plot_slices(ax,
-                                max_iso,
-                                min_iso,
-                                x_cross,
-                                y_cross,
-                                perp_vec,
-                                vec,
-                                angles,
-                                x,
-                                y)
+                    plot_slices(
+                        ax,
+                        max_iso,
+                        min_iso,
+                        x_cross,
+                        y_cross,
+                        perp_vec,
+                        vec,
+                        angles,
+                        x,
+                        y
+                    )
                     ax.set_xlim([-limits, limits])
                     ax.set_ylim([-limits, limits])
 
@@ -476,13 +492,23 @@ def main():
     y_value = np.sum(angles)/2
     for idx, atom in enumerate(atoms):
         if atom.symbol == 'C':
-            ax.scatter(atom.position[2] + bottom_carbon[2],
-                       y_value, color='black', marker='o', s=10)
+            ax.scatter(
+                atom.position[2] + bottom_carbon[2],
+                y_value,
+                color='black',
+                marker='o',
+                s=10
+            )
             ax.annotate(idx, (atom.position[2] + bottom_carbon[2], y_value))
 
         if atom.symbol == 'Ru':
-            ax.scatter(atom.position[2] + bottom_carbon[2],
-                       y_value, color='turquoise', marker='o', s=10)
+            ax.scatter(
+                atom.position[2] + bottom_carbon[2],
+                y_value,
+                color='turquoise',
+                marker='o',
+                s=10
+            )
 
     x = np.array(z_value) + bottom_carbon[2]
     y = np.cumsum(angles)
@@ -504,23 +530,23 @@ def main():
 
     # Save data
     dump_data(
-            file,
-            folder_name,
-            planes,
-            data_dic["plane_data"],
-            data_dic["pos_iso"],
-            data_dic["neg_iso"],
-            angles,
-            x_cross_collect,
-            y_cross_collect,
-            atom_info,
-            xyz_vec,
-            fitted_x,
-            fitted_y,
-            phis,
-            max_iso_val,
-            min_iso_val,
-        )
+        file,
+        folder_name,
+        planes,
+        data_dic["plane_data"],
+        data_dic["pos_iso"],
+        data_dic["neg_iso"],
+        angles,
+        x_cross_collect,
+        y_cross_collect,
+        atom_info,
+        xyz_vec,
+        fitted_x,
+        fitted_y,
+        phis,
+        max_iso_val,
+        min_iso_val,
+    )
 
     if export_gif:
         export_as_gif(imgs, x, y, fig, ax, folder_name)
