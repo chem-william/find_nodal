@@ -69,7 +69,7 @@ def pol2cart(rho, phi):
     return x, y
 
 
-def perpendicular_vector(v: list) -> list:
+def perpendicular_vector(v):
     thres = 0.000005
     v = np.array(v)
     if v[1] != thres:
@@ -80,7 +80,8 @@ def perpendicular_vector(v: list) -> list:
             raise ValueError('zero vector')
         else:
             warnings.warn(
-                "Warning: y-component = 0. Might result in wrongly assigned direction leading to wrong angles.", RuntimeWarning)
+                "Warning: y-component = 0. Might result in wrongly assigned direction leading to wrong angles.", RuntimeWarning
+            )
             return [0, -1]
 
     return [-v[1], v[0]]
@@ -119,7 +120,7 @@ def _check_bad_fit(r_val: float, p_val: float, point_count: int) -> None:
     if (np.abs(r_val) < 0.5) and p_val > 0.5:
         warnings.warn(
                 f'R^2 = {r_val} and p-value = {p_val} for point #{point_count}. This fit might be very poor', RuntimeWarning
-            )
+        )
 
 
 def draw_prev_angle(vec, angles, ax):
@@ -133,7 +134,7 @@ def draw_prev_angle(vec, angles, ax):
     ax.plot(angle_x, angle_y, color='purple')
 
 
-def fit_points(x, y, point_count: int) -> (np.array, np.array):
+def fit_points(x, y, point_count):
     x = np.array(x)
     y = np.array(y)
 
@@ -152,8 +153,10 @@ def fit_points(x, y, point_count: int) -> (np.array, np.array):
         phi -= rot
         x_cart_rot, y_cart_rot = pol2cart(rho, phi)
 
-        slope, _, r_value, p_value, _ = stats.linregress(x_cart_rot,
-                                                         y_cart_rot)
+        slope, _, r_value, p_value, _ = stats.linregress(
+            x_cart_rot,
+            y_cart_rot,
+        )
         _check_bad_fit(r_value, p_value, point_count)
 
         xp = np.linspace(-1, 1, len(y_cart_rot))
@@ -168,8 +171,8 @@ def fit_points(x, y, point_count: int) -> (np.array, np.array):
     return x, y
 
 
-def find_zero_crossings(plane: np.array, axis: int, x_cross, y_cross):
-    u, indices = np.unique(plane[:, axis], return_index=True)
+def find_zero_crossings(plane, axis, x_cross, y_cross):
+    _, indices = np.unique(plane[:, axis], return_index=True)
 
     for value in plane[indices, axis]:
         line_indices = np.where(plane[:, axis] == value)
@@ -182,19 +185,24 @@ def find_zero_crossings(plane: np.array, axis: int, x_cross, y_cross):
             y_cross.append((temp_line[item, 1] + temp_line[item + 1, 1])/2)
 
 
-def plot_slices(ax,
-                high_iso,
-                low_iso,
-                x_cross,
-                y_cross,
-                perp_vec,
-                vec,
-                angles,
-                x,
-                y):
+def plot_slices(
+        ax,
+        high_iso,
+        low_iso,
+        x_cross,
+        y_cross,
+        perp_vec,
+        vec,
+        angles,
+        x,
+        y
+):
 
-    ax.plot([0, low_iso[0] - high_iso[0]],
-            [0, low_iso[1] - high_iso[1]], color='orange')
+    ax.plot(
+        [0, low_iso[0] - high_iso[0]],
+        [0, low_iso[1] - high_iso[1]],
+        color='orange'
+    )
 
     ax.scatter(high_iso[0], high_iso[1], marker='x', color='green')
     ax.scatter(low_iso[0], low_iso[1], marker='x', color='black')
@@ -203,8 +211,12 @@ def plot_slices(ax,
 
     # plot the midway points at which the
     # isovalues goes from positive to negative
-    ax.scatter(x_cross, y_cross,
-               marker='v', color='purple')
+    ax.scatter(
+        x_cross,
+        y_cross,
+        marker='v',
+        color='purple'
+    )
 
     # which direction the fitted line points to
     ax.scatter(vec[0], vec[1], color='black', marker='x')
@@ -215,7 +227,7 @@ def plot_slices(ax,
     ax.legend()
 
 
-def export_as_gif(imgs, x, y, fig, ax, folder_name: str) -> None:
+def export_as_gif(imgs, x, y, fig, ax, folder_name):
     # First export the slices as a gif
     frames = []
     for i in imgs:
@@ -223,28 +235,29 @@ def export_as_gif(imgs, x, y, fig, ax, folder_name: str) -> None:
         frames.append(new_frame)
 
     frames[0].save(
-                "slices.gif",
-                format="GIF",
-                append_images=frames[1:],
-                save_all=True,
-                duration=400,
-                loop=0
-            )
+        "slices.gif",
+        format="GIF",
+        append_images=frames[1:],
+        save_all=True,
+        duration=400,
+        loop=0,
+    )
 
     # Next, export the change in angles
     ax.axis("off")
     fig.set_size_inches(10, 6)
+
     def update(i):
         if i != 0:
             ax.plot(x[:i], y[:i], marker='o', color='black')
         return ax
 
     anim = FuncAnimation(
-                    fig,
-                    update,
-                    frames=np.arange(len(x)),
-                    interval=400
-                )
+        fig,
+        update,
+        frames=np.arange(len(x)),
+        interval=400,
+    )
     anim.save(folder_name + "/angles.gif", dpi=100, writer="imagemagick")
 
     # Remove the .png's
