@@ -1,6 +1,8 @@
+import numpy as np
 import numpy.linalg as la
 from typing import List
 from typing import Dict
+import matplotlib.pyplot as plt
 
 EXPORT_FILE = "jmol_export.spt"
 
@@ -43,6 +45,7 @@ def draw_plane(values, origin: List[int], file) -> None:
                  origin[2] + value[2]]
 
         if idx > 1:
+<<<<<<< HEAD
             # Upper left
             line_str = (
                     f"draw plane{idx} PLANE "
@@ -65,6 +68,14 @@ def draw_plane(values, origin: List[int], file) -> None:
                     f"{prev_coord[1] - norm_xy[1]*2} "
                     f"{coord[2]}}} "
                 )
+=======
+            line_str = f'draw plane{idx} PLANE {{{coord[0]} {coord[1]} {coord[2]}}} '  # Upper left
+            line_str += f'{{{prev_coord[0]} {prev_coord[1]} {prev_coord[2]}}} '  # Upper right
+
+            line_str += f'{{{coord[0] - norm_xy[0]*2} {coord[1] - norm_xy[1]*2} {prev_coord[2]}}} '  # Lower right
+            # line_str += f'draw circle{idx} DIAMETER 0.11 CIRCLE {{ {coord[0] - norm_xy[0]*2} {coord[1] - norm_xy[1]*2} {coord[2]} }} '
+            line_str += f'{{{prev_coord[0] - norm_xy[0]*2} {prev_coord[1] - norm_xy[1]*2} {coord[2]}}} '  # Lower left
+>>>>>>> c7e903052a344fc1640d80c2947aa8118dd8c510
 
             file.write(line_str)
             file.write('\n')
