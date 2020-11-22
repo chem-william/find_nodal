@@ -13,6 +13,7 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 import seaborn as sns
 from PIL import Image
+from tqdm import tqdm
 sns.set_style(style='white')
 
 
@@ -69,7 +70,7 @@ def pol2cart(rho, phi):
     return x, y
 
 
-def perpendicular_vector(v):
+def perpendicular_vector(v: list) -> list:
     thres = 0.000005
     v = np.array(v)
     if v[1] != thres:
@@ -119,7 +120,8 @@ def _check_bad_fit(r_val: float, p_val: float, point_count: int) -> None:
     # very poor, warn the user. Thresholds are arbitrary
     if (np.abs(r_val) < 0.5) and p_val > 0.5:
         warnings.warn(
-                f'R^2 = {r_val} and p-value = {p_val} for point #{point_count}. This fit might be very poor', RuntimeWarning
+            f'R^2 = {r_val} and p-value = {p_val} for point #{point_count}. This fit might be very poor',
+            RuntimeWarning
         )
 
 
@@ -134,7 +136,7 @@ def draw_prev_angle(vec, angles, ax):
     ax.plot(angle_x, angle_y, color='purple')
 
 
-def fit_points(x, y, point_count):
+def fit_points(x, y, point_count: int):
     x = np.array(x)
     y = np.array(y)
 
@@ -171,7 +173,7 @@ def fit_points(x, y, point_count):
     return x, y
 
 
-def find_zero_crossings(plane, axis, x_cross, y_cross):
+def find_zero_crossings(plane, axis: int, x_cross, y_cross):
     _, indices = np.unique(plane[:, axis], return_index=True)
 
     for value in plane[indices, axis]:
@@ -186,16 +188,16 @@ def find_zero_crossings(plane, axis, x_cross, y_cross):
 
 
 def plot_slices(
-        ax,
-        high_iso,
-        low_iso,
-        x_cross,
-        y_cross,
-        perp_vec,
-        vec,
-        angles,
-        x,
-        y
+    ax,
+    high_iso,
+    low_iso,
+    x_cross,
+    y_cross,
+    perp_vec,
+    vec,
+    angles,
+    x,
+    y,
 ):
 
     ax.plot(
@@ -211,12 +213,7 @@ def plot_slices(
 
     # plot the midway points at which the
     # isovalues goes from positive to negative
-    ax.scatter(
-        x_cross,
-        y_cross,
-        marker='v',
-        color='purple'
-    )
+    ax.scatter(x_cross, y_cross, marker='v', color='purple')
 
     # which direction the fitted line points to
     ax.scatter(vec[0], vec[1], color='black', marker='x')
@@ -279,17 +276,21 @@ def main():
     parser.add_argument(
         'center',
         metavar='center_atom',
-        help='The atom to center data points around. Can be obtained by opening the file in e.g. Avogadro. First atom is 1'
+        help=(
+            'The atom to center data points around. '
+            'Can be obtained by opening the file in e.g. Avogadro. '
+            'First atom is 1'
+        ),
     )
 
     parser.add_argument(
         'bottom_atom',
-        help='"bottom" atom of the linear carbon chain'
+        help='"bottom" atom of the linear carbon chain',
     )
 
     parser.add_argument(
         'top_atom',
-        help='"top" atom of the linear carbon chain'
+        help='"top" atom of the linear carbon chain',
     )
 
     parser.add_argument(
@@ -297,7 +298,10 @@ def main():
         default=False,
         dest='show_slices',
         action='store_true',
-        help='Show each slice that has been generated from the .cube file. Default is False'
+        help=(
+            'Show each slice that has been generated from the .cube file. '
+            'Default is False'
+        ),
     )
 
     parser.add_argument(
@@ -311,6 +315,7 @@ def main():
 
     file = os.getcwd() + '/' + args.file
     center_idx = int(args.center) - 1
+    open_jmol = args.open_jmol
     show_slices = args.show_slices
     export_gif = args.export_gif
 
@@ -344,7 +349,7 @@ def main():
     all_info = all_info[all_info[:, 2].argsort()]
 
     prev_coord = all_info[0]
-    for coordinate in all_info:
+    for coordinate in tqdm(all_info, desc="Finding planes.."):
         if coordinate[2] == prev_coord[2]:
             # we're in the same plane so add the coordinate
             plane.append(
@@ -395,9 +400,8 @@ def main():
                     )
 
                 # Constrict number of points by a radius-filter
-                # Arbitrarily set at .9
                 r_indices = np.where(
-                    cart2pol(plane[:, 0], plane[:, 1])[0] < .9
+                    cart2pol(plane[:, 0], plane[:, 1])[0] < 1.
                 )
                 plane = plane[r_indices]
 
@@ -417,6 +421,8 @@ def main():
 
                 min_iso = [plane[min_index, 0], plane[min_index, 1]]
                 min_iso = np.array(min_iso).ravel()
+                
+                plane = plane[np.lexsort((plane[:, 0], plane[:, 1]))]
 
                 perp_vec = perpendicular_vector(
                     [max_iso[0] - min_iso[0], max_iso[1] - min_iso[1], 0])
@@ -479,7 +485,7 @@ def main():
                         vec,
                         angles,
                         x,
-                        y
+                        y,
                     )
                     ax.set_xlim([-limits, limits])
                     ax.set_ylim([-limits, limits])
@@ -536,6 +542,10 @@ def main():
 
     names = file.split("/")
     folder_name = names[-3] + "_" + names[-1][:-5]
+    
+    if open_jmol:
+        cmd = 'jmol ' + folder_name + '/jmol_export.spt &'
+        os.system(cmd)
 
     # show all figures at the same time
     if show_slices:
