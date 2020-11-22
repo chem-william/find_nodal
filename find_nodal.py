@@ -263,6 +263,18 @@ def export_as_gif(imgs, x, y, fig, ax, folder_name):
 
     print("Exported slices.gif and angles.gif!")
 
+    
+def generate_xy_shift(bottom_carbon, top_carbon, carbon_chain, planes, atoms):
+    zaxis = np.linspace(bottom_carbon[2], top_carbon[2], len(planes))
+    x_correction = [pos.position[0] for pos in atoms[carbon_chain]]
+    y_correction = [pos.position[1] for pos in atoms[carbon_chain]]
+
+    old_axis = np.linspace(bottom_carbon[2], top_carbon[2], len(carbon_chain))
+    interp_x = np.interp(zaxis, old_axis, x_correction)
+    interp_y = np.interp(zaxis, old_axis, y_correction)
+
+    return interp_x, interp_y
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -292,6 +304,26 @@ def main():
         'top_atom',
         help='"top" atom of the linear carbon chain',
     )
+    
+    parser.add_argument(
+        '--carbon_chain',
+        help=(
+            '<Required> indices of carbon atoms ',
+            'that defines the helix chain. Example "5,1,2,3,13"',
+        ),
+        required=True
+    )
+
+    parser.add_argument(
+        '--open-jmol',
+        dest='open_jmol',
+        default=False,
+        action='store_true',
+        help=(
+            'Open the generated .spt file in jmol after analysis. '
+            'Default is False'
+        )
+    )
 
     parser.add_argument(
         '--show-slices',
@@ -318,6 +350,7 @@ def main():
     open_jmol = args.open_jmol
     show_slices = args.show_slices
     export_gif = args.export_gif
+    carbon_chain = [int(item) for item in str(args.carbon_chain).split(",")]
 
     atoms, all_info, xyz_vec = utilities.read_cube(file)
     center_atom = atoms[int(center_idx)].position
@@ -381,12 +414,21 @@ def main():
     fitted_x = []
     fitted_y = []
     phis = []
+    
+    shift_x, shift_y = generate_xy_shift(
+        bottom_carbon, top_carbon, carbon_chain, planes, atoms
+    )
+
 
     print('Analyzing..')
     for idx, plane in enumerate(planes):
         if top_carbon[2] > plane[0, 2] > bottom_carbon[2]:
             if idx < len(planes) - 1:
                 z_value.append(plane[0, 2])
+                
+                # Impose a shift on the coordinates to center the nodal plane
+                plane[:, 0] -= shift_x[idx]
+                plane[:, 1] -= shift_y[idx]
 
                 if show_slices or export_gif:
                     _, ax = plt.subplots()
