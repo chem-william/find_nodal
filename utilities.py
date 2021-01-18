@@ -2,10 +2,7 @@ import os
 import numpy as np
 from ase.units import Bohr
 from ase.atoms import Atoms
-<<<<<<< HEAD
-=======
 from tqdm import tqdm
->>>>>>> c6109251cfcd5061f338d8088cb5f9703b22ddbc
 import libread_cube
 
 
@@ -108,11 +105,7 @@ def _get_info(data, xyz_vec, dims):
     all_info = []
     total = 0
 
-<<<<<<< HEAD
-    for ix in range(dims[0]):
-=======
     for ix in tqdm(range(dims[0]), desc="Getting coordinates from voxels.."):
->>>>>>> c6109251cfcd5061f338d8088cb5f9703b22ddbc
         x = ix*xyz_vec[0]
 
         for iy in range(dims[1]):
