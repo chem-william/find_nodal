@@ -12,6 +12,15 @@ Feel free to open an issue if you have any questions regarding the code or its u
 If we want to analyze the highest occupied molecular orbital (HOMO) of an \[8\]cumulene, we can use the following command to find the helical nodal plane.
 
 First, we have to make sure that the atom and the MO has been aligned along the z-axis.
+
+Next, we need to setup up the following folder structure:
+```bash
+molecule_folder
+└── data
+    └── homo.cube
+```
+Running the script will then create a folder called `molecule_folder_homo` with all the analyzed data in it.
+
 Next, we run the following command.
 ```bash
 python find_nodal.py 8_cumulene/homo.cube 6 12 2 --carbon-chain 12,11,6,4,2
