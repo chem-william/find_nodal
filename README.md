@@ -31,7 +31,7 @@ where "6" is the center atom, "12" is the bottom atom and "2" is the top atom. T
 ```bash
 --show-slices
 ```
-Show each slice that has been generated from the .cube file. Default is False. It will open each slice in a new matplotlib instance so be aware that it will not work on a cluster.
+Show each slice that has been generated from the .cube file. Default is False. It will open each slice in a new matplotlib instance so be aware that it will not work if you're connected to a remote server. You also have to be aware that if the analyzed MO have been dumped on a fine grid, you'll open a lot of matplotlib-instances which might tank your computer.
 
 It opens all plots at the same time so it will probably tank your computer if the MO have been dumped on a fine grid.
 
