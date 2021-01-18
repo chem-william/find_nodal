@@ -1,10 +1,8 @@
-import numpy as np
 import numpy.linalg as la
 from typing import List
 from typing import Dict
-import matplotlib.pyplot as plt
 
-EXPORT_FILE = "./jmol_export.spt"
+EXPORT_FILE = "jmol_export.spt"
 
 
 def draw_iso(iso_values: List[List[int]],
@@ -76,10 +74,10 @@ def draw_plane(values, origin: List[int], file) -> None:
 
 
 def export_jmol(
-    export_data: Dict,
-    origin: List[int],
-    cube_file: str,
-    export_folder: str,
+        export_data: Dict,
+        origin: List[int],
+        cube_file: str,
+        export_folder: str
 ) -> None:
     with open(export_folder + "/" + EXPORT_FILE, 'w') as file:
 
