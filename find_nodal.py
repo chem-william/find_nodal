@@ -484,7 +484,7 @@ def main():
     )
     
     parser.add_argument(
-        '--carbon_chain',
+        '--carbon-chain',
         help=(
             '<Required> indices of carbon atoms ',
             'that defines the helix chain. Example "5,1,2,3,13"',
