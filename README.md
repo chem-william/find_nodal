@@ -14,9 +14,9 @@ If we want to analyze the highest occupied molecular orbital (HOMO) of an \[8\]c
 First, we have to make sure that the atom and the MO has been aligned along the z-axis.
 Next, we run the following command.
 ```bash
-python find_nodal.py 8_cumulene/homo.cube 6 12 2
+python find_nodal.py 8_cumulene/homo.cube 6 12 2 --carbon-chain 12,11,6,4,2
 ```
-where "6" is the center atom, "12" is the bottom atom and "2" is the top atom
+where "6" is the center atom, "12" is the bottom atom and "2" is the top atom. The atoms listed after the `--carbon-chain` command is the chain that the slices will be aligned against. This is important for molecules where the helical MO is not following a straight carbon chain (such as dimethyl-spiro[4.4]nonatetraene).
 
 ### Options
 ```bash
