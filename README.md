@@ -39,3 +39,6 @@ It opens all plots at the same time so it will probably tank your computer if th
 --export-gif
 ```
 Export the slices as a .gif. Default is False. This option will try to export all slices used in the analysis as a .gif.
+
+### Hückel example
+The script`huckel_model.py` calculates the helicality of a chosen MO for a Hückel model of an [8]cumulene. The length of the cumulene can be extended by changing `dim`.
