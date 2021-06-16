@@ -92,8 +92,6 @@ degrees = np.array(degrees)
 
 print(degrees)
 
-# np.save("./degrees_homo.npy", degrees)
-
 plt.scatter(range(len(degrees)), np.cumsum(np.abs(degrees)), c="k")
 print(np.cumsum(np.abs(degrees)))
 
