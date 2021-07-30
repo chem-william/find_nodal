@@ -27,6 +27,26 @@ python find_nodal.py 8_cumulene/homo.cube 6 12 2 --carbon-chain 12,11,6,4,2
 ```
 where "6" is the center atom, "12" is the bottom atom and "2" is the top atom. The atoms listed after the `--carbon-chain` command is the chain that the slices will be aligned against. This is important for molecules where the helical MO is not following a straight carbon chain (such as dimethyl-spiro[4.4]nonatetraene).
 
+### Description of output files
+All files that ends with `.npy` can be loaded with `np.load()`.
+- `angles.npy`: Contains the angle between each succesive slice in units of degrees.
+- `angles.png`: Plot of the cumulated sum of angles generated from the data in `angles.npy`
+- `atom_info.npy`: Contains an array of `[atoms, top_carbon, bottom_carbon, [center_x, center_y, center_z]]`
+    - `atoms`: An `Atoms` object containing information about the molecular system
+    - `{top,bottom}_carbon`: Index of the top and bottom carbon, respectively.
+    - `[center_x, center_y, center_z]`: A list of the x, y, and z-coordinate of the center atom.
+- `fitted_{x,y}.npy`: Data points for the line that was fitted through the nodal plane. In other words, this data is the estimation of the nodal plane in a given slice.
+- `homo.cube`: .cube file of the analyzed MO.
+- `jmol_export.spt`: Contains information for [Jmol](http://wiki.jmol.org/index.php/Main_Page) to plot a visualization of the molecule, the analyzed MO, the found nodal plane as a yellow plane and the highest and lowest isovalue as a blue and red line, respectively.
+- `jmol_plane_data.npy`: Information to plot the nodal plane in Jmol.
+- `max_iso.npy`: The maximum isovalue in a given radius-filtered slice.
+- `max_{neg,pos}_iso.npy`:
+- `min_iso_val.npy`:
+- `phis.npy`: The angle between (0,0) and the maximum positive isovalue in a given radius-filtered slice.
+- `planes.npy`:
+- `{x,y}_cross.npy`:
+- `xyz_vec.npy`:
+
 ### Options
 ```bash
 --show-slices
