@@ -40,12 +40,12 @@ All files that ends with `.npy` can be loaded with `np.load()`.
 - `jmol_export.spt`: Contains information for [Jmol](http://wiki.jmol.org/index.php/Main_Page) to plot a visualization of the molecule, the analyzed MO, the found nodal plane as a yellow plane and the highest and lowest isovalue as a blue and red line, respectively.
 - `jmol_plane_data.npy`: Information to plot the nodal plane in Jmol.
 - `max_iso.npy`: The maximum isovalue in a given radius-filtered slice.
-- `max_{neg,pos}_iso.npy`:
-- `min_iso_val.npy`:
+- `max_{neg,pos}_iso.npy`: Highest negative and positive isovalue in each radius-filtered slice. Is used to generate the Jmol visualization.
+- `min_iso_val.npy`: The minimum isovalue in each radius-filtered slice.
 - `phis.npy`: The angle between (0,0) and the maximum positive isovalue in a given radius-filtered slice.
-- `planes.npy`:
-- `{x,y}_cross.npy`:
-- `xyz_vec.npy`:
+- `planes.npy`: A list of planes sorted according to z-coordinate. Each plane contains a list of coordinates which contains x-, y-, z-coordinates and isovalue.
+- `{x,y}_cross.npy`: The x-, and y-coordinates of where each slice goes from positive to negative. Calculated as the midway point between the closest positive and negative number.
+- `xyz_vec.npy`: Contains the unit vectors of each dimension.
 
 ### Options
 ```bash
