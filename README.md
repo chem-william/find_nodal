@@ -28,7 +28,7 @@ python find_nodal.py 8_cumulene/homo.cube 6 12 2 --carbon-chain 12,11,6,4,2
 where "6" is the center atom, "12" is the bottom atom and "2" is the top atom. The atoms listed after the `--carbon-chain` command is the chain that the slices will be aligned against. This is important for molecules where the helical MO is not following a straight carbon chain (such as dimethyl-spiro[4.4]nonatetraene).
 
 ### Description of output files
-All files that ends with `.npy` can be loaded with `np.load()`.
+All files that ends with `.npy` can be loaded with `np.load()`. The main result lies in `angles.npy` with a visualization of this data in `angles.png`. Some secondary visualization lies in `jmol_export.spt`. The rest of the files are mainly for debugging.
 - `angles.npy`: Contains the angle between each succesive slice in units of degrees.
 - `angles.png`: Plot of the cumulated sum of angles generated from the data in `angles.npy`
 - `atom_info.npy`: Contains an array of `[atoms, top_carbon, bottom_carbon, [center_x, center_y, center_z]]`
